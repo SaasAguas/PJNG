@@ -133,3 +133,4 @@ with tabs[2]:
     if st.button("🔴 REINICIAR DÍA"):
         st.session_state.caja = {'dinero': 0.0, 'litros': 0, 'prod': 0}
         st.rerun()
+        

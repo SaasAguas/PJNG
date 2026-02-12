@@ -1,310 +1,231 @@
-import streamlit as st
-import pandas as pd
-from datetime import datetime
-import pytz
-import time
-
-# ==========================================
-# 1. CONFIGURACIÓN Y DATOS REALES (ORDENADOS A-Z)
-# ==========================================
-st.set_page_config(page_title="La Jalisciense POS", page_icon="🥤", layout="centered")
-TZ_CDMX = pytz.timezone('America/Mexico_City')
-
-# --- LISTAS REALES ORDENADAS ---
-SABORES_FRUTA = sorted([
-    "Ciruela", "Fresa", "Fresa-Hierbabuena", "Guayaba", "Guayaba-Fresa", 
-    "Guayaba-Hierbabuena", "Hierbabuena-Limon", "Jamaica", "Lima", 
-    "Lima-Albahaca", "Lima-Stevia", "Limon Con Pepino Y Hierbabuena", 
-    "Limon-Chia", "Limón-Alfalfa", "Limón-Hierbabuena", "Mango", 
-    "Maracuya", "Melon", "Melon Citrico", "Piña Naranja Hierbabuena", 
-    "Piña-Alfalfa", "Piña-Hierbabuena", "Piña-Naranja"
-])
-
-SABORES_CREMA = sorted([
-    "Cebada", "Chai", "Coco Con Nuez", "Crema Irlandesa", "Horchata Arroz", 
-    "Horchata De Fresa", "Kalhua", "Mazapan", "Taro", "Vainilla"
-])
-
-# Diccionario de Precios Fijos
-PRODUCTOS_EXTRA = {
-    "Campana": 20, "Frapuchino": 10, "Fresas Con Crema": 25,
-    "Paleta De Agua": 25, "Paleta De Leche": 30, "Sandwich": 20
-}
-
-# Construcción del DataFrame Inicial
-datos = []
-for s in SABORES_FRUTA: datos.append({"Sabor": s, "Categoría": "Fruta", "Stock": 50, "PrecioFijo": 0})
-for s in SABORES_CREMA: datos.append({"Sabor": s, "Categoría": "Crema", "Stock": 50, "PrecioFijo": 0})
-for p in sorted(PRODUCTOS_EXTRA.keys()): datos.append({"Sabor": p, "Categoría": "Paletas", "Stock": 20, "PrecioFijo": PRODUCTOS_EXTRA[p]})
-
-CATALOGO_INICIAL = pd.DataFrame(datos)
-
-# ==========================================
-# 2. ESTILOS CSS REFINADOS (MODERNO & LIMPIO)
-# ==========================================
-st.markdown("""
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Jalisciense - Sistema de Gestión</title>
     <style>
-    /* Tipografía y Fondo */
-    .stApp { background-color: #F8F5FA; font-family: 'Segoe UI', sans-serif; color: #333; }
-    
-    /* Encabezados */
-    h1 { color: #C2185B; font-weight: 900; font-size: 2.2rem !important; text-align: center; margin-bottom: 0rem;}
-    h3 { color: #880E4F; font-weight: 700; font-size: 1.3rem !important; margin-top: 1rem;}
-    
-    /* Botones de Categoría (Estilo Secundario) */
-    div.stButton > button[kind="secondary"] {
-        background-color: white; color: #C2185B; border: 2px solid #C2185B;
-        border-radius: 12px; height: 3.5em; font-weight: bold;
-    }
-    div.stButton > button[kind="secondary"]:hover { background-color: #FCE4EC; }
+        :root {
+            --primary: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --dark: #343a40;
+            --light: #f8f9fa;
+        }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f4f6f9; }
+        
+        /* Navegación */
+        nav { background-color: var(--dark); padding: 1rem; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .nav-links button { background: none; border: none; color: white; font-size: 1rem; margin-left: 15px; cursor: pointer; padding: 5px 10px; }
+        .nav-links button:hover, .nav-links button.active { background-color: rgba(255,255,255,0.2); border-radius: 5px; }
 
-    /* Botones de Acción (Estilo Primario) */
-    div.stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #C2185B, #880E4F);
-        color: white; border: none; border-radius: 12px;
-        font-weight: 700; padding: 0.6rem 1rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%;
-    }
-    div.stButton > button[kind="primary"]:hover {
-        transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-    }
-    
-    /* Textos Clave */
-    .big-label { font-size: 1rem; font-weight: 800; color: #555; margin-bottom: -5px; display: block;}
-    .stock-warning { color: #D32F2F; font-weight: bold; font-size: 0.9rem; }
-    .stock-ok { color: #388E3C; font-weight: bold; font-size: 0.9rem; }
-    
-    /* Tarjetas de Carrito */
-    .cart-item {
-        background: white; padding: 10px; border-radius: 10px;
-        border-left: 5px solid #C2185B; margin-bottom: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;
-    }
-    .cart-title { font-weight: 700; color: #333; }
-    
-    /* Ajustes de espaciado */
-    .block-container { padding-top: 1.5rem; }
+        /* Contenedores */
+        .container { padding: 20px; max-width: 1200px; margin: 0 auto; display: none; }
+        .active-section { display: block; }
+
+        /* Tarjetas y UI General */
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { margin-top: 0; border-bottom: 2px solid var(--primary); padding-bottom: 10px; color: var(--dark); }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-success { background-color: var(--success); }
+        .btn-danger { background-color: var(--danger); }
+        .btn-primary { background-color: var(--primary); }
+        .btn-warning { background-color: var(--warning); color: #000; }
+        
+        /* Punto de Venta */
+        .pos-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .filters { margin-bottom: 15px; }
+        .flavor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+        .flavor-btn { padding: 15px; border: 1px solid #ddd; background: white; cursor: pointer; border-radius: 8px; text-align: center; transition: 0.2s; }
+        .flavor-btn:hover { border-color: var(--primary); background-color: #e9f5ff; }
+        .flavor-btn.low-stock { border-color: var(--danger); color: var(--danger); }
+        
+        .cart-panel { background: white; padding: 15px; border-radius: 8px; height: fit-content; border: 1px solid #ddd; }
+        .cart-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
+        
+        /* Controles de Precio y Cantidad */
+        .controls-row { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap; }
+        .price-options label { margin-right: 10px; cursor: pointer; }
+        .qty-control { display: flex; align-items: center; }
+        .qty-control input { width: 50px; text-align: center; font-size: 1.1rem; padding: 5px; margin: 0 5px; }
+        .qty-btn { width: 30px; height: 30px; background: #ddd; border: none; cursor: pointer; font-weight: bold; }
+
+        /* Panel de Control */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+        .stat-box { background: var(--dark); color: white; padding: 20px; border-radius: 8px; text-align: center; }
+        .stat-box h3 { margin: 0; font-size: 2rem; }
+        .stat-box p { margin: 0; opacity: 0.8; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+        th { background-color: #f1f1f1; }
     </style>
-    """, unsafe_allow_html=True)
+</head>
+<body>
 
-# ==========================================
-# 3. GESTIÓN DEL ESTADO
-# ==========================================
-def init_session():
-    if 'inventario' not in st.session_state:
-        st.session_state.inventario = CATALOGO_INICIAL.copy()
-    if 'carrito' not in st.session_state:
-        st.session_state.carrito = []
-    if 'transacciones' not in st.session_state:
-        st.session_state.transacciones = [] 
-    if 'caja' not in st.session_state:
-        st.session_state.caja = {'dinero': 0.0, 'litros_vendidos': 0, 'litros_producidos': 0}
-    if 'cat_activa' not in st.session_state:
-        st.session_state.cat_activa = "Fruta" # Categoría por defecto
+    <nav>
+        <h1>La Jalisciense 🍦</h1>
+        <div class="nav-links">
+            <button onclick="showSection('pos')" class="active" id="btn-pos">Punto de Venta</button>
+            <button onclick="showSection('production')" id="btn-production">Producción</button>
+            <button onclick="showSection('admin')" id="btn-admin">Control e Inventario</button>
+        </div>
+    </nav>
 
-init_session()
+    <div id="pos" class="container active-section">
+        <div class="pos-layout">
+            <div>
+                <div class="card">
+                    <div class="controls-row">
+                        <div class="price-options">
+                            <strong>Precio:</strong>
+                            <input type="radio" name="price" value="20" checked id="p20"><label for="p20">$20 (Std)</label>
+                            <input type="radio" name="price" value="16" id="p16"><label for="p16">$16</label>
+                            <input type="radio" name="price" value="15" id="p15"><label for="p15">$15</label>
+                        </div>
+                        <div class="qty-control">
+                            <strong>Litros:</strong>
+                            <button class="qty-btn" onclick="adjustQty(-1)">-</button>
+                            <input type="number" id="qty-input" value="1" min="1">
+                            <button class="qty-btn" onclick="adjustQty(1)">+</button>
+                        </div>
+                    </div>
 
-# ==========================================
-# 4. INTERFAZ DE USUARIO
-# ==========================================
-st.write("<h1>La Jalisciense <span style='font-size:1rem; color: #BDBDBD'>| POS</span></h1>", unsafe_allow_html=True)
+                    <div class="filters">
+                        <button class="btn btn-primary" onclick="filterFlavors('all')">Todos</button>
+                        <button class="btn btn-warning" onclick="filterFlavors('crema')">Crema</button>
+                        <button class="btn btn-success" onclick="filterFlavors('fruta')">Fruta</button>
+                    </div>
 
-tabs = st.tabs(["🛒 PUNTO DE VENTA", "🏗️ PRODUCCIÓN", "📊 CORTE Y REPORTE"])
-
-# --- TAB 1: VENTAS ---
-with tabs[0]:
-    # 1. BOTONES GRANDES DE CATEGORÍA
-    c1, c2, c3 = st.columns(3)
-    # El botón activo se ve "lleno" (primary), los inactivos "con borde" (secondary)
-    if c1.button("🍉 FRUTA", key="btn_fruta", use_container_width=True, type="secondary" if st.session_state.cat_activa != "Fruta" else "primary"): 
-        st.session_state.cat_activa = "Fruta"
-        st.rerun()
-    if c2.button("🥛 CREMA", key="btn_crema", use_container_width=True, type="secondary" if st.session_state.cat_activa != "Crema" else "primary"): 
-        st.session_state.cat_activa = "Crema"
-        st.rerun()
-    if c3.button("🍭 PALETAS", key="btn_paletas", use_container_width=True, type="secondary" if st.session_state.cat_activa != "Paletas" else "primary"): 
-        st.session_state.cat_activa = "Paletas"
-        st.rerun()
-    
-    st.divider()
-
-    # 2. SELECCIÓN DE PRODUCTO
-    col_sel, col_datos = st.columns([1.5, 1], gap="small")
-    
-    # Filtramos por categoría activa
-    df_filtrado = st.session_state.inventario[st.session_state.inventario['Categoría'] == st.session_state.cat_activa]
-    
-    with col_sel:
-        st.markdown(f'<span class="big-label">Sabor ({st.session_state.cat_activa}):</span>', unsafe_allow_html=True)
-        sabor = st.selectbox("Sabor:", df_filtrado['Sabor'], label_visibility="collapsed")
-        
-        # Stock Visual
-        item_data = df_filtrado[df_filtrado['Sabor'] == sabor].iloc[0]
-        stock_disp = item_data['Stock']
-        if stock_disp < 15:
-            st.markdown(f'<span class="stock-warning">⚠️ Quedan {stock_disp}</span>', unsafe_allow_html=True)
-        else:
-            st.markdown(f'<span class="stock-ok">✅ Stock: {stock_disp}</span>', unsafe_allow_html=True)
-
-    with col_datos:
-        # LÓGICA DE PRECIOS AUTOMÁTICA
-        if st.session_state.cat_activa == "Paletas":
-            # Precio Fijo
-            st.markdown('<span class="big-label">Precio:</span>', unsafe_allow_html=True)
-            price = st.number_input("Precio", value=float(item_data['PrecioFijo']), disabled=True, label_visibility="collapsed")
-            st.markdown('<span class="big-label">Piezas:</span>', unsafe_allow_html=True)
-            qty = st.number_input("Cant:", min_value=1, value=1, label_visibility="collapsed")
-            unidad = "Pza"
-        else:
-            # Precio Variable (Aguas)
-            st.markdown('<span class="big-label">Precio/Lt:</span>', unsafe_allow_html=True)
-            price = st.selectbox("Precio", [20, 16, 15], label_visibility="collapsed")
-            st.markdown('<span class="big-label">Litros:</span>', unsafe_allow_html=True)
-            qty = st.number_input("Cant:", min_value=1, value=1, label_visibility="collapsed")
-            unidad = "Lt"
-        
-    if st.button("➕ AGREGAR AL PEDIDO", use_container_width=True, type="primary"):
-        if stock_disp >= qty:
-            st.session_state.carrito.append({
-                "Sabor": sabor, "Litros": qty, "Unidad": unidad,
-                "Precio": price, "Subtotal": qty * price
-            })
-            st.toast(f"✅ Agregado: {sabor}")
-        else:
-            st.error("❌ Stock insuficiente")
-
-    # 3. CARRITO VISUAL
-    if st.session_state.carrito:
-        st.divider()
-        st.markdown("### 🧾 Cuenta Actual")
-        total_cuenta = 0
-        for item in st.session_state.carrito:
-            total_cuenta += item['Subtotal']
-            st.markdown(f"""
-            <div class="cart-item">
-                <div>
-                    <div class="cart-title">{item['Litros']} {item['Unidad']} - {item['Sabor']}</div>
-                    <div style="font-size: 0.8rem; color: #777;">${item['Precio']} c/u</div>
+                    <div id="flavor-container" class="flavor-grid">
+                        </div>
                 </div>
-                <div style="font-weight: 900; color: #D81B60;">${item['Subtotal']}</div>
-            </div>""", unsafe_allow_html=True)
-        
-        st.markdown(f"<div style='text-align: right; font-size: 1.8rem; font-weight: 900; color: #D81B60;'>Total: ${total_cuenta}</div>", unsafe_allow_html=True)
-        
-        c_pay, c_del = st.columns([3, 1])
-        if c_pay.button("✅ COBRAR", type="primary", use_container_width=True):
-            hora_actual = datetime.now(TZ_CDMX).strftime("%H:%M:%S")
-            for item in st.session_state.carrito:
-                idx = st.session_state.inventario[st.session_state.inventario['Sabor'] == item['Sabor']].index[0]
-                st.session_state.inventario.at[idx, 'Stock'] -= item['Litros']
-                
-                st.session_state.transacciones.append({
-                    "Hora": hora_actual, "Tipo": "Venta", "Desc": f"{item['Litros']}{item['Unidad']} {item['Sabor']}", "Monto": item['Subtotal']
-                })
-                st.session_state.caja['dinero'] += item['Subtotal']
-                st.session_state.caja['litros_vendidos'] += item['Litros']
+            </div>
 
-            st.session_state.carrito = []
-            st.balloons()
-            st.success("¡Venta Cobrada!")
-            time.sleep(1)
-            st.rerun()
-
-        if c_del.button("🗑️", use_container_width=True):
-            st.session_state.carrito = []
-            st.rerun()
-
-# --- TAB 2: PRODUCCIÓN ---
-with tabs[1]:
-    st.markdown("### 🏭 Registro de Fabricación")
-    
-    col_p1, col_p2 = st.columns([1.5, 1])
-    with col_p1:
-        st.markdown('<p class="big-label">Producto:</p>', unsafe_allow_html=True)
-        # Ordenamos la lista para encontrar rápido
-        sabor_prod = st.selectbox("Sabor Prod", sorted(st.session_state.inventario['Sabor'].unique()), label_visibility="collapsed")
-    with col_p2:
-        st.markdown('<p class="big-label">Entrada:</p>', unsafe_allow_html=True)
-        cant_prod = st.number_input("Cant Prod", 1, 500, 50, label_visibility="collapsed")
-    
-    if st.button("📥 INGRESAR AL ALMACÉN", use_container_width=True, type="primary"):
-        idx = st.session_state.inventario[st.session_state.inventario['Sabor'] == sabor_prod].index[0]
-        st.session_state.inventario.at[idx, 'Stock'] += cant_prod
-        
-        hora_actual = datetime.now(TZ_CDMX).strftime("%H:%M:%S")
-        st.session_state.transacciones.append({
-            "Hora": hora_actual, "Tipo": "Producción", "Desc": f"{cant_prod} Entrada {sabor_prod}", "Monto": 0
-        })
-        st.session_state.caja['litros_producidos'] += cant_prod
-        st.success(f"✅ Stock actualizado: {sabor_prod} (+{cant_prod})")
-
-# --- TAB 3: CORTE Y REPORTE ---
-with tabs[2]:
-    st.markdown("### 📈 Panel de Control")
-    
-    k1, k2, k3 = st.columns(3)
-    k1.markdown(f"<div style='text-align:center; background:#FFF; padding:10px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1)'><div style='font-size:0.9rem; color:#777'>Caja</div><div style='font-size:1.4rem; font-weight:bold; color:#D81B60'>${st.session_state.caja['dinero']:,.0f}</div></div>", unsafe_allow_html=True)
-    k2.markdown(f"<div style='text-align:center; background:#FFF; padding:10px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1)'><div style='font-size:0.9rem; color:#777'>Ventas</div><div style='font-size:1.4rem; font-weight:bold; color:#333'>{st.session_state.caja['litros_vendidos']}</div></div>", unsafe_allow_html=True)
-    k3.markdown(f"<div style='text-align:center; background:#FFF; padding:10px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1)'><div style='font-size:0.9rem; color:#777'>Prod</div><div style='font-size:1.4rem; font-weight:bold; color:#333'>{st.session_state.caja['litros_producidos']}</div></div>", unsafe_allow_html=True)
-    
-    st.divider()
-    
-    c_inv, c_hist = st.columns(2)
-    
-    with c_inv:
-        st.markdown("#### 🧊 Inventario Visual")
-        for index, row in st.session_state.inventario.sort_values('Sabor').iterrows():
-            percent = min(100, row['Stock'])
-            color_bar = "#D81B60" if row['Stock'] > 20 else "#E53935"
-            st.markdown(f"""
-            <div style="margin-bottom: 8px;">
-                <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:0.8rem;">
-                    <span>{row['Sabor']}</span>
-                    <span>{row['Stock']}</span>
+            <div class="cart-panel">
+                <h3>🛒 Cuenta Actual</h3>
+                <div id="cart-items">
+                    <p style="color:#666; text-align:center;">Carrito vacío</p>
                 </div>
-                <div style="width:100%; background-color:#EEE; height:6px; border-radius:4px;">
-                    <div style="width:{percent}%; background-color:{color_bar}; height:6px; border-radius:4px;"></div>
+                <hr>
+                <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold;">
+                    <span>Total:</span>
+                    <span id="cart-total">$0.00</span>
                 </div>
-            </div>""", unsafe_allow_html=True)
-        
-    with c_hist:
-        st.markdown("#### 📜 Historial de Ventas")
-        if st.session_state.transacciones:
-            df_trans = pd.DataFrame(st.session_state.transacciones)
-            st.dataframe(df_trans.iloc[::-1], use_container_width=True, hide_index=True, height=300)
+                <button class="btn btn-success" style="width: 100%; margin-top: 15px;" onclick="finalizeSale()">Cobrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="production" class="container">
+        <div class="card" style="max-width: 600px; margin: 0 auto;">
+            <h2>🏭 Registro de Producción</h2>
+            <p>Agrega los litros fabricados al inventario.</p>
             
-            csv = df_trans.to_csv(index=False).encode('utf-8')
-            st.download_button("📥 Descargar CSV", data=csv, file_name=f"corte_{datetime.now().strftime('%Y%m%d')}.csv", mime="text/csv", use_container_width=True)
-        else:
-            st.info("Sin movimientos.")
+            <label>Sabor:</label>
+            <select id="prod-flavor" style="width: 100%; padding: 10px; margin-bottom: 15px;">
+                </select>
 
-    # ZONA DE CIERRE SEGURA (LÓGICA ANTERIOR MANTENIDA)
-    st.markdown("---")
-    with st.expander("🔐 Zona de Cierre de Caja"):
-        st.warning("Para cerrar caja, primero descarga el reporte.")
+            <label>Cantidad (Litros):</label>
+            <input type="number" id="prod-qty" style="width: 100%; padding: 10px; margin-bottom: 15px;" placeholder="Ej. 20">
+
+            <button class="btn btn-primary" style="width: 100%;" onclick="addProduction()">Registrar Producción</button>
+        </div>
+    </div>
+
+    <div id="admin" class="container">
         
-        confirmar_seguridad = st.checkbox("Entiendo que al cerrar se reinicia el dinero a $0")
-        
-        if confirmar_seguridad:
-            if 'intento_cierre' not in st.session_state:
-                st.session_state.intento_cierre = False
-                
-            if not st.session_state.intento_cierre:
-                if st.button("🔴 INICIAR CIERRE DE CAJA"):
-                    st.session_state.intento_cierre = True
-                    st.rerun()
-            else:
-                st.error("⚠️ ¿Estás seguro? Presiona otra vez para confirmar.")
-                col_conf, col_cancel = st.columns(2)
-                
-                if col_conf.button("🔴 CONFIRMAR CIERRE AHORA"):
-                    st.session_state.caja = {'dinero': 0.0, 'litros_vendidos': 0, 'litros_producidos': 0}
-                    st.session_state.transacciones = []
-                    st.session_state.intento_cierre = False
-                    st.success("✅ Día cerrado y caja reiniciada.")
-                    time.sleep(1.5)
-                    st.rerun()
-                
-                if col_cancel.button("Cancelar"):
-                    st.session_state.intento_cierre = False
-                    st.rerun()
+        <div class="stats-grid">
+            <div class="stat-box">
+                <h3 id="stat-cash">$0</h3>
+                <p>Dinero en Caja</p>
+            </div>
+            <div class="stat-box" style="background-color: var(--primary);">
+                <h3 id="stat-sold">0 L</h3>
+                <p>Litros Vendidos</p>
+            </div>
+            <div class="stat-box" style="background-color: var(--warning); color: black;">
+                <h3 id="stat-produced">0 L</h3>
+                <p>Litros Fabricados</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between;">
+                <h2>📦 Inventario Actual</h2>
+                <button class="btn btn-danger" onclick="closeRegister()">🔒 Cierre de Caja (Reiniciar Día)</button>
+            </div>
+            <table id="inventory-table">
+                <thead>
+                    <tr><th>Sabor</th><th>Tipo</th><th>Stock (L)</th><th>Estado</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between;">
+                <h2>📜 Historial de Movimientos</h2>
+                <button class="btn btn-success" onclick="downloadCSV()">⬇ Descargar Excel</button>
+            </div>
+            <div style="max-height: 300px; overflow-y: auto;">
+                <table id="history-table">
+                    <thead>
+                        <tr><th>Hora</th><th>Acción</th><th>Detalle</th><th>Monto</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- BASE DE DATOS INICIAL ---
+        // Aquí simulamos 50 sabores (pondré algunos de ejemplo y generaré el resto)
+        let initialFlavors = [
+            { name: "Limón", type: "fruta", stock: 50 },
+            { name: "Fresa", type: "fruta", stock: 40 },
+            { name: "Mango", type: "fruta", stock: 30 },
+            { name: "Nuez", type: "crema", stock: 25 },
+            { name: "Chocolate", type: "crema", stock: 20 },
+            { name: "Vainilla", type: "crema", stock: 20 },
+            { name: "Piña", type: "fruta", stock: 35 },
+            { name: "Coco", type: "crema", stock: 15 }
+        ];
+
+        // Rellenar hasta 50 para el ejemplo
+        for(let i=1; i<=42; i++) {
+            initialFlavors.push({ 
+                name: `Sabor ${i}`, 
+                type: i % 2 === 0 ? "crema" : "fruta", 
+                stock: 0 
+            });
+        }
+
+        // --- ESTADO DEL SISTEMA ---
+        let db = {
+            inventory: JSON.parse(localStorage.getItem('inventory')) || initialFlavors,
+            salesHistory: JSON.parse(localStorage.getItem('salesHistory')) || [],
+            cash: parseFloat(localStorage.getItem('cash')) || 0,
+            soldLiters: parseInt(localStorage.getItem('soldLiters')) || 0,
+            producedLiters: parseInt(localStorage.getItem('producedLiters')) || 0
+        };
+
+        let cart = [];
+
+        // --- FUNCIONES DE NAVEGACIÓN ---
+        function showSection(sectionId) {
+            document.querySelectorAll('.container').forEach(el => el.classList.remove('active-section'));
+            document.getElementById(sectionId).classList.add('active-section');
+            
+            // Actualizar clases de botones
+            document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${sectionId}`).classList.add('active');
+
+            if(sectionId === 'admin') renderAdmin();
+            if(sectionId === 'production') renderProduction();
+        }
+
+        function saveData() {
+            localStorage.setItem('inventory', JSON.stringify(db.

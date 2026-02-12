@@ -5,91 +5,63 @@ import pytz
 import time
 
 # ==========================================
-# 1. CONFIGURACIÓN Y DATOS MAESTROS (REALES)
+# 1. CONFIGURACIÓN Y DATOS MAESTROS
 # ==========================================
 st.set_page_config(page_title="La Jalisciense POS", page_icon="🥤", layout="centered")
+
+# Definir zona horaria (CDMX)
 TZ_CDMX = pytz.timezone('America/Mexico_City')
 
-# --- CATÁLOGO REAL ---
-SABORES_FRUTA = [
-    "Jamaica", "Maracuya", "Ciruela", "Lima", "Fresa-Hierbabuena", "Fresa", 
-    "Guayaba-Hierbabuena", "Guayaba-Fresa", "Piña-Alfalfa", "Guayaba", 
-    "Lima-Albahaca", "Melon", "Hierbabuena-Limon", "Mango", "Limón-Alfalfa", 
-    "Piña-Naranja", "Limón-Hierbabuena", "Piña-Hierbabuena", "Limon-Chia", 
-    "Limon Con Pepino Y Hierbabuena", "Piña Naranja Hierbabuena", "Melon Citrico", "Lima-Stevia"
+# Catálogo Inicial
+CATALOGO_INICIAL = [
+    {"Sabor": "Limón", "Categoría": "Fruta", "Stock": 100},
+    {"Sabor": "Jamaica", "Categoría": "Fruta", "Stock": 100},
+    {"Sabor": "Mango", "Categoría": "Fruta", "Stock": 100},
+    {"Sabor": "Piña", "Categoría": "Fruta", "Stock": 100},
+    {"Sabor": "Fresa", "Categoría": "Fruta", "Stock": 100},
+    {"Sabor": "Horchata", "Categoría": "Crema", "Stock": 100},
+    {"Sabor": "Nuez", "Categoría": "Crema", "Stock": 100},
+    {"Sabor": "Fresa con Crema", "Categoría": "Crema", "Stock": 100},
+    {"Sabor": "Coco", "Categoría": "Crema", "Stock": 100},
 ]
-SABORES_CREMA = [
-    "Horchata De Fresa", "Horchata Arroz", "Vainilla", "Mazapan", "Chai", 
-    "Taro", "Coco Con Nuez", "Cebada", "Kalhua", "Crema Irlandesa"
-]
-PRODUCTOS_EXTRA = {
-    "Paleta De Agua": 25, "Paleta De Leche": 30, "Sandwich": 20,
-    "Campana": 20, "Frapuchino": 10, "Fresas Con Crema": 25
-}
-
-# Construcción del DataFrame Inicial con precios fijos para extras
-datos = []
-for s in SABORES_FRUTA: datos.append({"Sabor": s, "Categoría": "Fruta", "Stock": 50, "PrecioFijo": None})
-for s in SABORES_CREMA: datos.append({"Sabor": s, "Categoría": "Crema", "Stock": 50, "PrecioFijo": None})
-for p, precio in PRODUCTOS_EXTRA.items(): datos.append({"Sabor": p, "Categoría": "Extras", "Stock": 20, "PrecioFijo": precio})
-
-CATALOGO_INICIAL = pd.DataFrame(datos)
 
 # ==========================================
-# 2. ESTILOS CSS (LIMPIO Y MODERNO)
+# 2. ESTILOS CSS REFINADOS (MODERNO)
 # ==========================================
 st.markdown("""
     <style>
-    /* Forzar modo claro y fondo limpio */
-    .stApp {
-        background-color: #F8F5FA; /* Fondo muy suave casi blanco */
-        color: #333;
-    }
-    h1 { color: #C2185B; font-weight: 900; text-align: center; margin-bottom: 0px; }
+    /* Tipografía y Fondo */
+    .stApp { background-color: #FAFAFA; font-family: 'Segoe UI', sans-serif; }
     
-    /* Estilo de los Botones Grandes de Categoría */
-    div.stButton > button[kind="secondary"] {
-        background-color: white;
-        color: #C2185B;
-        border: 2px solid #C2185B;
-        border-radius: 12px;
-        height: 3.5em;
-        font-size: 1.1rem;
-        font-weight: bold;
-        transition: all 0.2s;
-    }
-    div.stButton > button[kind="secondary"]:hover {
-        background-color: #FCE4EC;
-        border-color: #C2185B;
-    }
-    /* Estilo para botón activo (Simulado) */
-    div.stButton > button[kind="secondary"]:focus {
-         background-color: #C2185B;
-         color: white;
-    }
-
-    /* Botón de Acción Principal (Cobrar/Agregar) */
-    div.stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #C2185B, #880E4F);
+    /* Encabezados */
+    h1 { color: #D81B60; font-weight: 900; font-size: 2.2rem !important; text-align: center; margin-bottom: 0rem;}
+    h3 { color: #880E4F; font-weight: 700; font-size: 1.3rem !important; margin-top: 1rem;}
+    
+    /* Botones */
+    div.stButton > button {
+        background: linear-gradient(135deg, #D81B60, #AD1457);
         color: white; border: none; border-radius: 12px;
-        font-weight: 700; padding: 0.6rem 1rem; height: 3em;
+        font-weight: 700; padding: 0.6rem 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        width: 100%;
     }
-
-    /* Etiquetas y textos */
-    .big-label { font-size: 1rem; font-weight: 700; color: #555; margin-bottom: -5px; display: block;}
-    .stock-warning { color: #D32F2F; font-weight: bold; font-size: 0.9rem; }
-    .stock-ok { color: #388E3C; font-weight: bold; font-size: 0.9rem; }
-
-    /* Tarjetas de Carrito */
-    .cart-item {
-        background: white; padding: 12px; border-radius: 10px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 8px;
-        border-left: 5px solid #C2185B; display: flex; justify-content: space-between; align-items: center;
+    div.stButton > button:hover {
+        transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.2);
     }
-    .cart-title { font-weight: 700; font-size: 1rem; }
-    .cart-price { font-weight: 900; font-size: 1.2rem; color: #C2185B; }
     
-    .block-container { padding-top: 2rem; }
+    /* Textos Clave en Negrita */
+    .big-label { font-size: 1.1rem; font-weight: 800; color: #37474F; }
+    .price-tag { font-size: 1.5rem; font-weight: 900; color: #D81B60; }
+    
+    /* Tarjetas de Inventario (Moderno) */
+    .inv-card {
+        background-color: white; padding: 10px; border-radius: 10px;
+        border-left: 5px solid #D81B60; margin-bottom: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    /* Ajustes de espaciado */
+    .block-container { padding-top: 1.5rem; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -98,167 +70,218 @@ st.markdown("""
 # ==========================================
 def init_session():
     if 'inventario' not in st.session_state:
-        st.session_state.inventario = CATALOGO_INICIAL.copy()
+        st.session_state.inventario = pd.DataFrame(CATALOGO_INICIAL)
     if 'carrito' not in st.session_state:
         st.session_state.carrito = []
-    if 'caja' not in st.session_state:
-        st.session_state.caja = {'dinero': 0.0, 'items': 0}
     if 'transacciones' not in st.session_state:
-        st.session_state.transacciones = []
-    if 'cat_activa' not in st.session_state:
-        st.session_state.cat_activa = "Fruta" # Categoría inicial
+        st.session_state.transacciones = [] 
+    if 'caja' not in st.session_state:
+        st.session_state.caja = {'dinero': 0.0, 'litros_vendidos': 0, 'litros_producidos': 0}
+    if 'cierre_confirmado' not in st.session_state:
+        st.session_state.cierre_confirmado = False
 
 init_session()
 
 # ==========================================
-# 4. INTERFAZ
+# 4. INTERFAZ DE USUARIO
 # ==========================================
 st.write("<h1>La Jalisciense <span style='font-size:1rem; color: #BDBDBD'>| POS</span></h1>", unsafe_allow_html=True)
-tabs = st.tabs(["🛒 VENTA", "🏗️ PRODUCCIÓN", "📊 REPORTES"])
 
-# --- TAB 1: VENTA ---
+tabs = st.tabs(["🛒 PUNTO DE VENTA", "🏗️ PRODUCCIÓN", "📊 CORTE Y REPORTE"])
+
+# --- TAB 1: VENTAS ---
 with tabs[0]:
-    # 1. BOTONES GRANDES DE CATEGORÍA
-    c1, c2, c3 = st.columns(3)
-    if c1.button("🍉 FRUTA", key="btn_fruta", use_container_width=True, type="secondary" if st.session_state.cat_activa != "Fruta" else "primary"): 
-        st.session_state.cat_activa = "Fruta"
-        st.rerun()
-    if c2.button("🥛 CREMA", key="btn_crema", use_container_width=True, type="secondary" if st.session_state.cat_activa != "Crema" else "primary"): 
-        st.session_state.cat_activa = "Crema"
-        st.rerun()
-    if c3.button("🍪 EXTRAS", key="btn_extras", use_container_width=True, type="secondary" if st.session_state.cat_activa != "Extras" else "primary"): 
-        st.session_state.cat_activa = "Extras"
-        st.rerun()
+    col_left, col_right = st.columns([1, 1.1], gap="small")
     
-    st.divider()
-
-    # 2. SELECCIÓN DE PRODUCTO
-    col_sel, col_datos = st.columns([1.5, 1])
-    
-    # Filtrar inventario por la categoría activa
-    df_filtro = st.session_state.inventario[st.session_state.inventario['Categoría'] == st.session_state.cat_activa]
-    
-    with col_sel:
-        st.markdown(f'<span class="big-label">Seleccionar {st.session_state.cat_activa}:</span>', unsafe_allow_html=True)
-        sabor_sel = st.selectbox("Sabor:", df_filtro['Sabor'], label_visibility="collapsed")
+    # Panel Izquierdo: Selección
+    with col_left:
+        st.markdown("### 🥤 Elegir Producto")
         
-        # Stock Info
-        item_data = df_filtro[df_filtro['Sabor'] == sabor_sel].iloc[0]
-        stock_disp = item_data['Stock']
-        if stock_disp < 15: st.markdown(f'<span class="stock-warning">⚠️ Quedan {stock_disp}</span>', unsafe_allow_html=True)
-        else: st.markdown(f'<span class="stock-ok">✅ Stock: {stock_disp}</span>', unsafe_allow_html=True)
-
-    with col_datos:
-        # Lógica de Precios (Variable vs Fijo)
-        if st.session_state.cat_activa == "Extras":
-            st.markdown('<span class="big-label">Precio:</span>', unsafe_allow_html=True)
-            precio_final = st.number_input("Precio Fijo", value=item_data['PrecioFijo'], disabled=True, label_visibility="collapsed")
-            st.markdown('<span class="big-label">Piezas:</span>', unsafe_allow_html=True)
-            cantidad = st.number_input("Cant:", min_value=1, value=1, label_visibility="collapsed")
-            unidad = "Pza"
+        # Filtros visuales
+        tipo = st.radio("Categoría:", ["Fruta", "Crema"], horizontal=True, label_visibility="collapsed")
+        
+        df_filtrado = st.session_state.inventario[st.session_state.inventario['Categoría'] == tipo]
+        
+        # Selector de Sabor Estilizado
+        st.markdown('<p class="big-label">Sabor:</p>', unsafe_allow_html=True)
+        sabor = st.selectbox("Sabor:", df_filtrado['Sabor'], label_visibility="collapsed")
+        
+        # Stock Visual
+        stock_disp = df_filtrado[df_filtrado['Sabor'] == sabor]['Stock'].values[0]
+        if stock_disp < 15:
+            st.error(f"⚠️ ¡Solo quedan {stock_disp} L!")
         else:
-            st.markdown('<span class="big-label">Precio/Lt:</span>', unsafe_allow_html=True)
-            precio_final = st.selectbox("Precio", [20, 16, 15], label_visibility="collapsed")
-            st.markdown('<span class="big-label">Litros:</span>', unsafe_allow_html=True)
-            cantidad = st.number_input("Litros:", min_value=1, value=1, label_visibility="collapsed")
-            unidad = "Lt"
+            st.success(f"Stock: {stock_disp} L disponibles")
 
-    if st.button("➕ AGREGAR AL PEDIDO", use_container_width=True, type="primary"):
-        if stock_disp >= cantidad:
-            st.session_state.carrito.append({
-                "Producto": sabor_sel, "Cant": cantidad, "Unidad": unidad,
-                "PrecioU": precio_final, "Total": cantidad * precio_final
-            })
-            st.toast(f"Agregado: {sabor_sel}")
-        else:
-            st.error("Stock insuficiente")
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown('<p class="big-label">Litros:</p>', unsafe_allow_html=True)
+            qty = st.number_input("Litros", 1, 100, 1, label_visibility="collapsed")
+        with c2:
+            st.markdown('<p class="big-label">Precio:</p>', unsafe_allow_html=True)
+            price = st.selectbox("Precio", [20, 16, 15], label_visibility="collapsed")
+        
+        if st.button("➕ AGREGAR", use_container_width=True):
+            if stock_disp >= qty:
+                st.session_state.carrito.append({
+                    "Sabor": sabor, "Litros": qty, "Precio": price, "Subtotal": qty * price
+                })
+                st.toast(f"✅ Agregado: {sabor}")
+            else:
+                st.error("❌ Stock insuficiente")
 
-    # 3. CARRITO Y COBRO
-    if st.session_state.carrito:
-        st.divider()
-        st.markdown("### 🧾 Pedido Actual")
-        total_pedido = 0
-        for item in st.session_state.carrito:
-            total_pedido += item['Total']
-            st.markdown(f"""
-            <div class="cart-item">
-                <div>
-                    <div class="cart-title">{item['Producto']}</div>
-                    <div style="color:#666; font-size:0.9rem;">{item['Cant']} {item['Unidad']} x ${item['PrecioU']}</div>
+    # Panel Derecho: Carrito Moderno (Lista, no tabla excel)
+    with col_right:
+        st.markdown("### 🧾 Cuenta Actual")
+        
+        if st.session_state.carrito:
+            total_cuenta = 0
+            for i, item in enumerate(st.session_state.carrito):
+                total_cuenta += item['Subtotal']
+                # Diseño de Ticket Individual
+                st.markdown(f"""
+                <div style="background: white; padding: 8px; border-radius: 8px; margin-bottom: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: bold; color: #333;">{item['Litros']}L {item['Sabor']}</div>
+                        <div style="font-size: 0.8rem; color: #777;">${item['Precio']}/L</div>
+                    </div>
+                    <div style="font-weight: 900; color: #D81B60;">${item['Subtotal']}</div>
                 </div>
-                <div class="cart-price">${item['Total']}</div>
-            </div>""", unsafe_allow_html=True)
-        
-        st.markdown(f"<div style='text-align:right; font-size:1.8rem; font-weight:900; color:#C2185B;'>Total: ${total_pedido}</div>", unsafe_allow_html=True)
-        
-        c_pay, c_del = st.columns([3, 1])
-        if c_pay.button("✅ COBRAR AHORA", type="primary", use_container_width=True):
-            hora = datetime.now(TZ_CDMX).strftime("%H:%M:%S")
-            for item in st.session_state.carrito:
-                idx = st.session_state.inventario[st.session_state.inventario['Sabor'] == item['Producto']].index[0]
-                st.session_state.inventario.at[idx, 'Stock'] -= item['Cant']
-                st.session_state.caja['dinero'] += item['Total']
-                st.session_state.caja['items'] += item['Cant']
-                st.session_state.transacciones.append({"Hora": hora, "Tipo": "Venta", "Desc": f"{item['Cant']}{item['Unidad']} {item['Producto']}", "Monto": item['Total']})
+                """, unsafe_allow_html=True)
             
-            st.session_state.carrito = []
-            st.balloons()
-            st.success("¡Venta Cobrada!")
-            time.sleep(0.5)
-            st.rerun()
+            st.markdown("---")
+            st.markdown(f"<div style='text-align: right; font-size: 1.8rem; font-weight: 900; color: #D81B60;'>Total: ${total_cuenta}</div>", unsafe_allow_html=True)
+            
+            c_pay, c_del = st.columns([3, 1])
+            if c_pay.button("✅ COBRAR", type="primary", use_container_width=True):
+                # PROCESAR
+                hora_actual = datetime.now(TZ_CDMX).strftime("%H:%M:%S")
+                for item in st.session_state.carrito:
+                    idx = st.session_state.inventario[st.session_state.inventario['Sabor'] == item['Sabor']].index[0]
+                    st.session_state.inventario.at[idx, 'Stock'] -= item['Litros']
+                    
+                    st.session_state.transacciones.append({
+                        "Hora": hora_actual, "Tipo": "Venta", "Desc": f"{item['Litros']}L {item['Sabor']}", "Monto": item['Subtotal']
+                    })
+                    st.session_state.caja['dinero'] += item['Subtotal']
+                    st.session_state.caja['litros_vendidos'] += item['Litros']
 
-        if c_del.button("🗑️ Limpiar"):
-            st.session_state.carrito = []
-            st.rerun()
+                st.session_state.carrito = []
+                st.balloons()
+                st.success("¡Venta Cobrada!")
+                time.sleep(1)
+                st.rerun()
+
+            if c_del.button("🗑️", use_container_width=True):
+                st.session_state.carrito = []
+                st.rerun()
+        else:
+            st.info("Carrito vacío. Agrega productos.")
 
 # --- TAB 2: PRODUCCIÓN ---
 with tabs[1]:
-    st.markdown("### 🏭 Entrada de Almacén")
-    c_prod, c_cant = st.columns([1.5, 1])
-    with c_prod:
-        st.markdown('<span class="big-label">Producto:</span>', unsafe_allow_html=True)
-        sabor_p = st.selectbox("Prod", st.session_state.inventario['Sabor'], label_visibility="collapsed")
-    with c_cant:
-        st.markdown('<span class="big-label">Cantidad Entrada:</span>', unsafe_allow_html=True)
-        cant_p = st.number_input("Cant P", 1, 500, 50, label_visibility="collapsed")
+    st.markdown("### 🏭 Registro de Fabricación")
+    
+    col_p1, col_p2 = st.columns([2, 1])
+    with col_p1:
+        st.markdown('<p class="big-label">Sabor Producido:</p>', unsafe_allow_html=True)
+        sabor_prod = st.selectbox("Sabor Prod", st.session_state.inventario['Sabor'], label_visibility="collapsed")
+    with col_p2:
+        st.markdown('<p class="big-label">Cantidad (L):</p>', unsafe_allow_html=True)
+        cant_prod = st.number_input("Cant Prod", 1, 500, 50, label_visibility="collapsed")
+    
+    if st.button("📥 INGRESAR AL ALMACÉN", use_container_width=True):
+        idx = st.session_state.inventario[st.session_state.inventario['Sabor'] == sabor_prod].index[0]
+        st.session_state.inventario.at[idx, 'Stock'] += cant_prod
         
-    if st.button("📥 REGISTRAR ENTRADA", use_container_width=True, type="primary"):
-        idx = st.session_state.inventario[st.session_state.inventario['Sabor'] == sabor_p].index[0]
-        st.session_state.inventario.at[idx, 'Stock'] += cant_p
-        hora = datetime.now(TZ_CDMX).strftime("%H:%M:%S")
-        st.session_state.transacciones.append({"Hora": hora, "Tipo": "Producción", "Desc": f"{cant_p} Entrada {sabor_p}", "Monto": 0})
-        st.success(f"Stock actualizado: {sabor_p}")
+        hora_actual = datetime.now(TZ_CDMX).strftime("%H:%M:%S")
+        st.session_state.transacciones.append({
+            "Hora": hora_actual, "Tipo": "Producción", "Desc": f"{cant_prod}L {sabor_prod}", "Monto": 0
+        })
+        st.session_state.caja['litros_producidos'] += cant_prod
+        st.success(f"✅ Stock actualizado: {sabor_prod} (+{cant_prod}L)")
 
-# --- TAB 3: REPORTES ---
+# --- TAB 3: CORTE Y REPORTE ---
 with tabs[2]:
-    st.markdown("### 📈 Corte del Día")
-    k1, k2 = st.columns(2)
-    k1.metric("Dinero en Caja", f"${st.session_state.caja['dinero']}")
-    k2.metric("Items Vendidos", f"{st.session_state.caja['items']}")
+    st.markdown("### 📈 Panel de Control")
+    
+    # KPIs Estilizados
+    k1, k2, k3 = st.columns(3)
+    k1.markdown(f"<div style='text-align:center; background:#FFF; padding:10px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1)'><div style='font-size:0.9rem; color:#777'>Caja</div><div style='font-size:1.4rem; font-weight:bold; color:#D81B60'>${st.session_state.caja['dinero']:,.0f}</div></div>", unsafe_allow_html=True)
+    k2.markdown(f"<div style='text-align:center; background:#FFF; padding:10px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1)'><div style='font-size:0.9rem; color:#777'>Ventas</div><div style='font-size:1.4rem; font-weight:bold; color:#333'>{st.session_state.caja['litros_vendidos']} L</div></div>", unsafe_allow_html=True)
+    k3.markdown(f"<div style='text-align:center; background:#FFF; padding:10px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1)'><div style='font-size:0.9rem; color:#777'>Prod</div><div style='font-size:1.4rem; font-weight:bold; color:#333'>{st.session_state.caja['litros_producidos']} L</div></div>", unsafe_allow_html=True)
     
     st.divider()
     
-    c_hist, c_inv = st.columns(2)
-    with c_hist:
-        st.markdown("#### 📜 Historial")
-        if st.session_state.transacciones:
-            df_t = pd.DataFrame(st.session_state.transacciones)
-            st.dataframe(df_t.iloc[::-1], use_container_width=True, hide_index=True, height=250)
-            csv = df_t.to_csv(index=False).encode('utf-8')
-            st.download_button("📥 Descargar CSV", csv, "corte.csv", "text/csv", use_container_width=True)
-        else: st.info("Sin movimientos")
-        
+    c_inv, c_hist = st.columns(2)
+    
     with c_inv:
-        st.markdown("#### 🧊 Inventario")
-        st.dataframe(st.session_state.inventario[['Sabor', 'Stock']], use_container_width=True, hide_index=True, height=250)
+        st.markdown("#### 🧊 Inventario Visual")
+        # Renderizado de Inventario Moderno (Barras)
+        for index, row in st.session_state.inventario.iterrows():
+            percent = min(100, row['Stock'])
+            color_bar = "#D81B60" if row['Stock'] > 20 else "#E53935"
+            st.markdown(f"""
+            <div style="margin-bottom: 8px;">
+                <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:0.9rem;">
+                    <span>{row['Sabor']}</span>
+                    <span>{row['Stock']}L</span>
+                </div>
+                <div style="width:100%; background-color:#EEE; height:8px; border-radius:4px;">
+                    <div style="width:{percent}%; background-color:{color_bar}; height:8px; border-radius:4px;"></div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+    with c_hist:
+        st.markdown("#### 📜 Historial de Ventas")
+        if st.session_state.transacciones:
+            df_trans = pd.DataFrame(st.session_state.transacciones)
+            st.dataframe(df_trans.iloc[::-1], use_container_width=True, hide_index=True, height=300)
+            
+            # Botón de Descarga OBLIGATORIO
+            csv = df_trans.to_csv(index=False).encode('utf-8')
+            descargado = st.download_button(
+                "📥 Descargar Reporte (CSV)",
+                data=csv,
+                file_name=f"corte_{datetime.now().strftime('%Y%m%d')}.csv",
+                mime="text/csv",
+                use_container_width=True,
+                key="btn_descarga"
+            )
+        else:
+            st.info("Sin movimientos.")
 
-    st.divider()
-    with st.expander("🔐 Cierre Seguro de Caja"):
-        st.warning("Requiere confirmación doble.")
-        if st.checkbox("Estoy seguro de cerrar el turno"):
-            if st.button("🔴 CONFIRMAR CIERRE FINAL", type="primary"):
-                st.session_state.caja = {'dinero': 0.0, 'items': 0}
-                st.session_state.transacciones = []
-                st.success("Caja reiniciada a $0")
-                time.sleep(1)
-                st.rerun()
+    # ZONA DE CIERRE SEGURA
+    st.markdown("---")
+    with st.expander("🔐 Zona de Cierre de Caja"):
+        st.warning("Para cerrar caja, primero descarga el reporte.")
+        
+        # Checkbox de seguridad
+        confirmar_seguridad = st.checkbox("Entiendo que al cerrar se reinicia el dinero a $0")
+        
+        if confirmar_seguridad:
+            # Botón con cuenta regresiva simulada (Lógica de 2 pasos)
+            if 'intento_cierre' not in st.session_state:
+                st.session_state.intento_cierre = False
+                
+            if not st.session_state.intento_cierre:
+                if st.button("🔴 INICIAR CIERRE DE CAJA"):
+                    st.session_state.intento_cierre = True
+                    st.rerun()
+            else:
+                st.error("⚠️ ¿Estás seguro? Presiona otra vez para confirmar.")
+                col_conf, col_cancel = st.columns(2)
+                
+                if col_conf.button("🔴 CONFIRMAR CIERRE AHORA"):
+                    # Resetear todo
+                    st.session_state.caja = {'dinero': 0.0, 'litros_vendidos': 0, 'litros_producidos': 0}
+                    st.session_state.transacciones = []
+                    st.session_state.intento_cierre = False
+                    st.success("✅ Día cerrado y caja reiniciada.")
+                    time.sleep(1.5)
+                    st.rerun()
+                
+                if col_cancel.button("Cancelar"):
+                    st.session_state.intento_cierre = False
+                    st.rerun()
